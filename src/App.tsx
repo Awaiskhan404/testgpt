@@ -4,10 +4,13 @@ import { SearchBar } from './components/SearchBar';
 import { ChatButton } from './components/ChatButton';
 import { MessageBubble } from './components/MessageBubble';
 import { MessageInput } from './components/MessageInput';
+import { StatusIndicator } from './components/StatusIndicator';
 import { ThemeToggle } from './components/ThemeToggle';
 import { PromptCard } from './components/PromptCard';
 import { initialChats, type Chat } from './data/chats';
 import { styles } from './styles/components';
+import { sendMessage } from './services/api';
+
 
 const commonPrompts = [
   {
@@ -38,26 +41,47 @@ function App() {
   const [input, setInput] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || isLoading) return;
 
     const now = new Date();
     const timestamp = now.toISOString().slice(0, 19).replace('T', ' ');
 
-    const newMessage = {
+    const userMessage = {
       id: Date.now(),
       content: input,
       sender: 'user' as const,
-      timestamp
+      timestamp,
     };
 
-    setCurrentChat(prev => ({
+    setCurrentChat((prev) => ({
       ...prev,
-      messages: [...prev.messages, newMessage]
+      messages: [...prev.messages, userMessage],
     }));
     setInput('');
+    setIsLoading(true);
+
+    try {
+      const response = await sendMessage(input);
+      const assistantMessage = {
+        id: Date.now(),
+        content: response,
+        sender: 'assistant' as const,
+        timestamp: new Date().toISOString().slice(0, 19).replace('T', ' '),
+      };
+
+      setCurrentChat((prev) => ({
+        ...prev,
+        messages: [...prev.messages, assistantMessage],
+      }));
+    } catch (error) {
+      console.error('Failed to get response:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const filteredChats = chats.filter(chat => 
@@ -72,16 +96,18 @@ function App() {
     <div className={styles.layout.container}>
       {/* Overlay for mobile */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden"
           onClick={closeSidebar}
         />
       )}
 
       {/* Sidebar */}
-      <div className={`${styles.layout.sidebar} ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
+      <div
+        className={`${styles.layout.sidebar} ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
         <div className="glass-panel h-full p-4 flex flex-col">
           <div className="mb-6">
             <SearchBar value={searchQuery} onChange={setSearchQuery} />
@@ -119,10 +145,17 @@ function App() {
             className={styles.header.menuButton}
             aria-label="Toggle sidebar"
           >
-            {sidebarOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+            {sidebarOpen ? (
+              <X className="w-4 h-4" />
+            ) : (
+              <Menu className="w-4 h-4" />
+            )}
           </button>
           <h1 className={styles.header.title}>{currentChat.title}</h1>
-          <ThemeToggle />
+          <div className="flex items-center gap-2">
+            <StatusIndicator />
+            <ThemeToggle />
+          </div>
         </div>
 
         {/* Welcome Section */}
@@ -131,13 +164,17 @@ function App() {
             <div className="min-h-full flex flex-col items-center justify-center p-4 md:p-8">
               <div className="text-center mb-8 md:mb-12 space-y-4">
                 <h1 className="text-2xl md:text-4xl font-bold">
-                  Hi there, <span className="bg-gradient-to-r from-purple-500 to-blue-500 bg-clip-text text-transparent">John</span>
+                  Hi there,{' '}
+                  <span className="bg-gradient-to-r from-purple-500 to-blue-500 bg-clip-text text-transparent">
+                    John
+                  </span>
                 </h1>
                 <h2 className="text-xl md:text-3xl font-semibold bg-gradient-to-r from-purple-400 via-pink-500 to-blue-500 bg-clip-text text-transparent">
                   What would you like to know?
                 </h2>
                 <p className="text-[var(--text-secondary)]">
-                  Use one of the most common prompts below or use your own to begin
+                  Use one of the most common prompts below or use your own to
+                  begin
                 </p>
               </div>
 
@@ -176,15 +213,15 @@ function App() {
               className={styles.input.textInput}
             />
             <div className="flex items-center gap-2">
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className={`${styles.input.button.base} hidden sm:flex`}
                 aria-label="Attach file"
               >
                 <Paperclip className="w-4 h-4 text-[var(--text-secondary)]" />
               </button>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className={`${styles.input.button.base} hidden sm:flex`}
                 aria-label="Attach image"
               >
@@ -193,7 +230,11 @@ function App() {
               <button
                 type="submit"
                 disabled={!input.trim()}
-                className={`${styles.input.button.base} ${input.trim() ? styles.input.button.active : styles.input.button.disabled}`}
+                className={`${styles.input.button.base} ${
+                  input.trim()
+                    ? styles.input.button.active
+                    : styles.input.button.disabled
+                }`}
                 aria-label="Send message"
               >
                 <Send className="w-4 h-4" />
