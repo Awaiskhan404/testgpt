@@ -36,36 +36,52 @@
   }
 
   body {
-    @apply bg-gradient-to-br from-[var(--background-start)] to-[var(--background-end)] text-[var(--text-primary)] min-h-screen;
+    @apply bg-gradient-to-br from-[var(--background-start)] to-[var(--background-end)] text-[var(--text-primary)] min-h-screen overflow-hidden touch-manipulation;
     background-attachment: fixed;
+    -webkit-tap-highlight-color: transparent;
   }
 
   /* Custom Scrollbar */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 4px;
+    height: 4px;
   }
 
   ::-webkit-scrollbar-track {
     @apply bg-[var(--glass-bg)];
-    border-radius: 3px;
+    border-radius: 2px;
     backdrop-filter: blur(8px);
   }
 
   ::-webkit-scrollbar-thumb {
     @apply bg-[var(--glass-border)];
-    border-radius: 3px;
+    border-radius: 2px;
     backdrop-filter: blur(12px);
   }
 
   ::-webkit-scrollbar-thumb:hover {
     background: var(--glass-border);
   }
+
+  @media (min-width: 768px) {
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      border-radius: 3px;
+    }
+  }
 }
 
 @layer components {
   .glass-panel {
-    @apply bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl relative overflow-hidden;
+    @apply bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-xl sm:rounded-2xl relative overflow-hidden;
     backdrop-filter: blur(20px);
     box-shadow: 0 8px 32px var(--glass-shadow);
   }
@@ -93,7 +109,7 @@
   }
 
   .glass-button {
-    @apply px-4 py-2 rounded-xl relative overflow-hidden;
+    @apply px-3 py-2 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl relative overflow-hidden;
     background: color-mix(in srgb, var(--glass-bg) 90%, transparent);
     backdrop-filter: blur(12px);
     border: 1px solid var(--glass-border);
@@ -112,7 +128,7 @@
   }
 
   .glass-input {
-    @apply rounded-xl px-4 py-2 outline-none relative;
+    @apply rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 outline-none relative;
     background: color-mix(in srgb, var(--glass-bg) 90%, transparent);
     backdrop-filter: blur(12px);
     border: 1px solid var(--glass-border);
@@ -131,7 +147,7 @@
   }
 
   .glass-card {
-    @apply relative overflow-hidden rounded-2xl;
+    @apply relative overflow-hidden rounded-lg sm:rounded-2xl;
     background: color-mix(in srgb, var(--glass-bg) 90%, transparent);
     backdrop-filter: blur(16px);
     border: 1px solid var(--glass-border);
@@ -165,7 +181,7 @@
   }
 
   .chat-button {
-    @apply w-full px-4 py-3 rounded-xl transition-all duration-300 relative overflow-hidden;
+    @apply w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg sm:rounded-xl transition-all duration-300 relative overflow-hidden;
     background: transparent;
     border: 1px solid var(--chat-button-border);
   }
@@ -185,50 +201,9 @@
     position: absolute;
     left: 0;
     top: 0;
-    width: 4px;
+    width: 3px;
     height: 100%;
     background: var(--accent-color);
-    border-radius: 2px;
+    border-radius: 1.5px;
   }
-}
-
-/* Animations */
-@keyframes pulse-glow {
-  0%, 100% { 
-    box-shadow: 0 0 20px var(--accent-color),
-                inset 0 0 10px var(--accent-color);
-  }
-  50% { 
-    box-shadow: 0 0 30px var(--accent-color),
-                inset 0 0 20px var(--accent-color);
-  }
-}
-
-.animate-glow {
-  animation: pulse-glow 3s ease-in-out infinite;
-}
-
-/* Additional Glass Effects */
-.glass-divider {
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--glass-border),
-    transparent
-  );
-}
-
-.glass-backdrop {
-  backdrop-filter: blur(40px);
-  background: color-mix(in srgb, var(--glass-bg) 80%, transparent);
-}
-
-.glass-hover-effect {
-  transition: all 0.3s ease;
-}
-
-.glass-hover-effect:hover {
-  backdrop-filter: blur(20px);
-  background: color-mix(in srgb, var(--glass-bg) 95%, transparent);
 }
